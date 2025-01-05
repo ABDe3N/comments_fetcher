@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>YouTube Comment Organizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      width: 400px;
+      padding: 20px;
+      font-family: 'Roboto', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      max-height: 600px;
+      overflow: hidden;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      color: #030303;
+      margin: 0 0 8px 0;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      background-color: #065fd4;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #0356c5;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    #status {
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .loading {
+      color: #606060;
+      background-color: #f1f1f1;
+    }
+
+    .success {
+      background-color: #e6f4ea;
+      color: #137333;
+    }
+
+    .error {
+      background-color: #fce8e6;
+      color: #c5221f;
+    }
+
+    #comments-list {
+      max-height: calc(600px - 220px);
+      overflow-y: auto;
+      margin: 12px 0;
+      padding: 0;
+      scrollbar-width: thin;
+    }
+
+    .comment-item {
+      background: white;
+      padding: 16px;
+      margin: 8px 0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .comment-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+
+    .comment-text {
+      color: #030303;
+      font-size: 14px;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .comment-likes {
+      color: #065fd4;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      background: #f2f8ff;
+      padding: 4px 12px;
+      border-radius: 12px;
+      align-self: flex-start;
+    }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #065fd4;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Scrollbar styling */
+    #comments-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #comments-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+
+    #comments-list::-webkit-scrollbar-thumb {
+      background: #c0c0c0;
+      border-radius: 4px;
+    }
+
+    #comments-list::-webkit-scrollbar-thumb:hover {
+      background: #a0a0a0;
+    }
+
+    .no-comments {
+      text-align: center;
+      color: #606060;
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    .controls-container {
+      position: sticky;
+      top: 0;
+      background-color: #f9f9f9;
+      padding: 8px 0;
+      z-index: 100;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .button-group button {
+      margin: 0;
+    }
+
+    #exportBtn {
+      background-color: #2ba640;
+    }
+
+    #exportBtn:hover {
+      background-color: #248a36;
+    }
+
+    #exportBtn:disabled {
+      background-color: #ccc;
+    }
+
+    #comments-list {
+      margin-top: 8px;
+    }
+
+    .filter-container {
+      margin-bottom: 12px;
+      padding: 12px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .filter-label {
+      display: block;
+      font-size: 14px;
+      color: #606060;
+      margin-bottom: 8px;
+    }
+
+    .filter-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #030303;
+      box-sizing: border-box;
+    }
+
+    .filter-input:focus {
+      outline: none;
+      border-color: #065fd4;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>YouTube Comment Organizer</h1>
+  </div>
+
+  <div class="controls-container">
+    <div class="filter-container">
+      <label class="filter-label" for="minLikes">Minimum likes filter</label>
+      <input type="number" id="minLikes" class="filter-input" value="10" min="0" placeholder="Enter minimum likes">
+    </div>
+    <div class="button-group">
+      <button id="extractBtn">Extract Top Comments</button>
+      <button id="exportBtn" disabled>Export Comments</button>
+    </div>
+    <div id="status">Ready to extract comments</div>
+  </div>
+  
+  <div id="comments-list" style="display: none;">
+    <!-- Comments will be inserted here -->
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
