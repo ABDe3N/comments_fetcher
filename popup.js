@@ -70,17 +70,53 @@ document.addEventListener('DOMContentLoaded', function() {
       exportBtn.disabled = true;
     } else {
       commentsList.innerHTML = comments
-        .map(comment => {
+        .map((comment, index) => {
           const cleanText = comment.text.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, '');
           return `
             <div class="comment-item">
               <div class="comment-text">${cleanText}</div>
-              <div class="comment-likes">Likes: ${formatLikes(comment.likes)}</div>
+              <div class="comment-footer">
+                <div class="comment-likes">Likes: ${formatLikes(comment.likes)}</div>
+                <button class="copy-btn" data-index="${index}">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 1H4C2.9 1 2 1.9 2 3V17H4V3H16V1ZM19 5H8C6.9 5 6 5.9 6 7V21C6 22.1 6.9 23 8 23H19C20.1 23 21 22.1 21 21V7C21 5.9 20.1 5 19 5ZM19 21H8V7H19V21Z" fill="currentColor"/>
+                  </svg>
+                  Copy
+                </button>
+              </div>
             </div>
           `;
         })
         .join('');
       exportBtn.disabled = false;
+
+      // Add click handlers for copy buttons
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const index = e.currentTarget.dataset.index;
+          const comment = comments[index];
+          const textWithLikes = `${formatLikes(comment.likes)} - ${comment.text}`;
+          
+          try {
+            await navigator.clipboard.writeText(textWithLikes);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = `
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" fill="currentColor"/>
+              </svg>
+              Copied!
+            `;
+            btn.classList.add('copied');
+            
+            setTimeout(() => {
+              btn.innerHTML = originalText;
+              btn.classList.remove('copied');
+            }, 2000);
+          } catch (err) {
+            console.error('Failed to copy text:', err);
+          }
+        });
+      });
     }
     
     commentsList.style.display = 'block';
